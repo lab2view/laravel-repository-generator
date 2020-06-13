@@ -4,7 +4,7 @@ namespace Lab2view\RepositoryGenerator;
 
 use Illuminate\Support\ServiceProvider;
 
-class RepositoryGeneratorServiceProvider extends ServiceProvider
+class RepositoryServiceProvider extends ServiceProvider
 {
     /**
      * Register services.

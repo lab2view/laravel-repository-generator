@@ -18,5 +18,12 @@
         "psr-4": {
             "Lab2view\\RepositoryGenerator\\": "src/"
         }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Lab2view\\RepositoryGenerator\\RepositoryServiceProvider"
+            ]
+        }
     }
 }
