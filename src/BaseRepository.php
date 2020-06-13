@@ -31,7 +31,7 @@ abstract class BaseRepository implements RepositoryInterface
             $query = $query->with($relations);
 
         if ($withTrashed)
-            $query = $query->withTrased();
+            $query = $query->withTrashed();
 
         return $query->paginate($n);
     }
@@ -64,7 +64,7 @@ abstract class BaseRepository implements RepositoryInterface
                 $query = $query->with($relations);
 
             if ($withTrashed)
-                $query = $query->withTrased();
+                $query = $query->withTrashed();
 
             return $query->find($id);
         } catch (\Illuminate\Database\QueryException $exc) {
@@ -97,7 +97,7 @@ abstract class BaseRepository implements RepositoryInterface
             $query = $query->with($relations);
 
         if ($withTrashed)
-            $query = $query->withTrased();
+            $query = $query->withTrashed();
 
         return $query->get();
     }
@@ -110,7 +110,7 @@ abstract class BaseRepository implements RepositoryInterface
     {
         $query = $this->model;
         if ($withTrashed)
-            $query = $query->withTrased();
+            $query = $query->withTrashed();
 
         return $query->count();
     }
