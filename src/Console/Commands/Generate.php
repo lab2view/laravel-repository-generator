@@ -13,7 +13,7 @@ class Generate extends Command
      *
      * @var string
      */
-    protected $signature = 'repositories:generate';
+    protected $signature = 'make:repositories';
 
     /**
      * The console command description.
