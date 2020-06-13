@@ -1,0 +1,22 @@
+{
+    "name": "lab2view/laravel-repository-generator",
+    "description": "Generate Repository from Eloquent models",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Lab2View SARL",
+            "email": "lab2view@gmail.com"
+        }
+    ],
+    "minimum-stability": "dev",
+    "require": {
+        "php": "^7.0",
+        "illuminate/support": "^5.4.16",
+        "illuminate/console": "^5.4.16"
+    },
+    "autoload": {
+        "psr-4": {
+            "Lab2view\\RepositoryGenerator\\": "src/"
+        }
+    }
+}

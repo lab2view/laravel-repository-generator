@@ -1,0 +1,14 @@
+<?php
+namespace {{ repository_namespace }};
+
+{{ user_statement_for_repository }}
+
+use {{ mode_namespace }}\{{ model }};
+
+class {{ repository }} extends {{ base_repository }}
+{
+    public function __construct({{ model }} $model)
+    {
+        parent::__construct($model);
+    }
+}
