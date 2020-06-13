@@ -12,8 +12,7 @@
     "require": {
         "php": "^7.0",
         "illuminate/support": "^5.4|^6.0|^7.0",
-        "illuminate/console": "^5.4|^6.0|^7.0",
-        "Illuminate/Support/Facades/Log": "^5.4|^6.0|^7.0"
+        "illuminate/console": "^5.4|^6.0|^7.0"
     },
     "autoload": {
         "psr-4": {
