@@ -3,6 +3,7 @@
 namespace Lab2view\RepositoryGenerator;
 
 use Illuminate\Support\ServiceProvider;
+use Lab2view\RepositoryGenerator\Console\Commands\Generate;
 
 class RepositoryServiceProvider extends ServiceProvider
 {
@@ -18,7 +19,7 @@ class RepositoryServiceProvider extends ServiceProvider
         );
         if ($this->app->runningInConsole()) {
             $this->commands([
-                Console\Commands\Generate::class,
+                Generate::class,
             ]);
         }
     }

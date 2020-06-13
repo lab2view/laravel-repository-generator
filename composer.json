@@ -10,9 +10,7 @@
     ],
     "minimum-stability": "dev",
     "require": {
-        "php": "^7.0",
-        "illuminate/support": "^5.4.16",
-        "illuminate/console": "^5.4.16"
+        "php": "^7.0"
     },
     "autoload": {
         "psr-4": {
