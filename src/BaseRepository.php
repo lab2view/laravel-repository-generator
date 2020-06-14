@@ -90,7 +90,7 @@ abstract class BaseRepository implements RepositoryInterface
      * @param bool $withTrashed
      * @return mixed
      */
-    public function getAll(array $relations, $withTrashed = false)
+    public function getAll($relations = [], $withTrashed = false)
     {
         $query = $this->model;
         if (count($relations) > 0)
