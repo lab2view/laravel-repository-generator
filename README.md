@@ -58,7 +58,7 @@ The following methods are available:
 
     public function search($key, $value)
 
-    public function getAll(array $relations, $withTrashed = false)
+    public function getAll($relations = [], $withTrashed = false)
 
     public function countAll($withTrashed = false)
 
