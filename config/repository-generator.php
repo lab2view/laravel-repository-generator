@@ -43,5 +43,5 @@ return [
     // We're gonna use "repository_directory" config value for it.
     'base_repository_file' => 'BaseRepository.php',
     // Class name as string
-    'base_repository_class' => \Lab2View\RepositoryGenerator\BaseRepository::class,
+    'base_repository_class' => \Lab2view\RepositoryGenerator\BaseRepository::class,
 ];
