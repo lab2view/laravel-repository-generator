@@ -50,15 +50,19 @@ The following methods are available:
 ##### Lab2view\RepositoryGenerator\RepositoryInterface
 
 ```php
-    public function getPaginate(int $n, $relations = [], $withTrashed = false);
+    public function exists(string $key, $value, $withTrashed = false)
+
+    public function getByAttribute(string $attr_name, $attr_value, $relations = [], $withTrashed = false, $selects = [])
+
+    public function getPaginate(int $n, $relations = [], $withTrashed = false, $selects = []);
 
     public function store(Array $inputs)
 
-    public function getById($id, $relations = [], $withTrashed = false)
+    public function getById($id, $relations = [], $withTrashed = false, $selects = [])
 
-    public function search($key, $value)
+    public function search($key, $value, $relations = [], $withTrashed = false, $selects = [])
 
-    public function getAll($relations = [], $withTrashed = false)
+    public function getAll($relations = [], $withTrashed = false, $selects = [])
 
     public function countAll($withTrashed = false)
 
