@@ -207,7 +207,7 @@ abstract class BaseRepository implements RepositoryInterface
     public function forceDelete($id)
     {
         try {
-            $data = $this->getById($id);
+            $data = $this->getById($id, [], true);
             return $data ? $data->forceDelete() : false;
         } catch (\Illuminate\Database\QueryException $exc) {
             Log::error($exc->getMessage(), $exc->getTrace());
@@ -222,7 +222,7 @@ abstract class BaseRepository implements RepositoryInterface
     public function restore($id)
     {
         try {
-            $data = $this->getById($id);
+            $data = $this->getById($id, [], true);
             return $data ? $data->restore() : false;
         } catch (\Illuminate\Database\QueryException $exc) {
             Log::error($exc->getMessage(), $exc->getTrace());
