@@ -85,6 +85,33 @@ abstract class BaseRepository implements RepositoryInterface
     }
 
     /**
+     * Saf
+     * @param array $searchCriterias
+     * @param array $newValues
+     * @return \Illuminate\Database\Eloquent\Model
+     * @throws Illuminate\Database\Eloquent\ModelNotFoundException
+     */
+    public function updateBlank(array $searchCriterias, array $newValues)
+    {
+        try {
+            $model = $this->model->where($searchCriterias)->firstOrFail();
+
+            $blankValues = collect($newValues)->filter(function ($fieldValue, $fieldName) use ($model) {
+                return blank($model->getAttribute($fieldName));
+            })->toArray();
+
+            $model->fill($blankValues)->save();
+
+            return $model;
+        } catch (\Illuminate\Database\QueryException $exc) {
+            Log::error($exc->getMessage(), $exc->getTrace());
+            return null;
+        } catch (\Illuminate\Database\ModelNotFoundException $exc) {
+           throw $exc;
+        }
+    }
+
+    /**
      * @param $id
      * @param array $relations
      * @param bool $withTrashed
@@ -107,6 +134,7 @@ abstract class BaseRepository implements RepositoryInterface
      * @param array $relations
      * @param bool $withTrashed
      * @param array $selects
+     * @throws Illuminate\Database\Eloquent\ModelNotFoundException
      * @return mixed
      */
     public function getByIdOrFail($id, $relations = [], $withTrashed = false, $selects = [])
@@ -117,6 +145,30 @@ abstract class BaseRepository implements RepositoryInterface
         } catch (\Illuminate\Database\QueryException $exc) {
             Log::error($exc->getMessage(), $exc->getTrace());
             return null;
+        } catch (\Illuminate\Database\ModelNotFoundException $exc) {
+            throw $exc;
+        }
+    }
+
+    /**
+     * @param $id
+     * @param bool $withTrashed
+     * @param array $selects
+     * @return array
+     */
+    public function getByIdEmptyAttributes($id, $withTrashed = false, $selects = [])
+    {
+        try {
+            $query = $this->initiateQuery([], $withTrashed, $selects);
+            $model = $query->findOrFail($id);
+            $blankValues = collect($model->getAttributes())->filter(function ($fieldValue, $fieldName) {
+                return blank($fieldValue);
+            })->toArray();
+
+            return $blankValues;
+        } catch (\Illuminate\Database\QueryException $exc) {
+            Log::error($exc->getMessage(), $exc->getTrace());
+            return [];
         }
     }
 
@@ -134,6 +186,8 @@ abstract class BaseRepository implements RepositoryInterface
         return $query->where($key, 'like', '%' . $value . '%')
             ->get();
     }
+
+
 
     /**
      * @param array $relations

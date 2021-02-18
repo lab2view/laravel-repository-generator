@@ -37,6 +37,14 @@ interface RepositoryInterface
      */
     public function store(Array $inputs);
 
+
+    /**
+     * @param array $searchCriterias
+     * @param array $newValues
+     * @return \Illuminate\Database\Eloquent\Model
+     */
+    public function updateBlank(array $searchCriterias, array $newValues);
+
     /**
      * @param $id
      * @param array $relations
@@ -55,6 +63,14 @@ interface RepositoryInterface
      * @return mixed
      */
     public function getByIdOrFail($id, $relations = [], $withTrashed = false, $selects = []);
+
+    /**
+     * @param $id
+     * @param bool $withTrashed
+     * @param array $selects
+     * @return array
+     */
+    public function getByIdEmptyAttributes($id, $withTrashed = false, $selects = []);
 
     /**
      * @param $key
