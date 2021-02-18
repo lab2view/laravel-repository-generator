@@ -11,7 +11,7 @@ abstract class BaseRepository implements RepositoryInterface
     /**
      * Create a new repository instance.
      *
-     * @param $model
+     * @param \Illuminate\Database\Eloquent\Model|mixed $model
      */
     public function __construct($model)
     {
@@ -110,7 +110,7 @@ abstract class BaseRepository implements RepositoryInterface
      * @param array $selects
      * @return mixed
      */
-    public function search($key, $value, $relations = [], $withTrashed = false, $selects = [])
+    public function search($key, $value, array $relations = [], $withTrashed = false, $selects = [])
     {
         $query = $this->initiateQuery($relations, $withTrashed, $selects);
         return $query->where($key, 'like', '%' . $value . '%')
@@ -123,7 +123,7 @@ abstract class BaseRepository implements RepositoryInterface
      * @param array $selects
      * @return mixed
      */
-    public function getAll($relations = [], $withTrashed = false, $selects = [])
+    public function getAll(array $relations = [], $withTrashed = false, $selects = [])
     {
         $query = $this->initiateQuery($relations, $withTrashed, $selects);
         return $query->get();
