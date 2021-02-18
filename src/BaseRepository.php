@@ -148,6 +148,28 @@ abstract class BaseRepository implements RepositoryInterface
     }
 
     /**
+     * Order by field, placing empty cells at end
+     * be careful when using a function in the ORDER BY clause; MySQL cannot use an index in these cases. These queries will work fine on "small" tables but will slow down drastically as your project scales in size.
+     *
+     * @param string $column
+     * @param string $direction
+     * @param array $relations
+     * @param bool $withTrashed
+     * @param array $selects
+     * @return $this
+     */
+    public function getAllOrderByWithEmptyAtEnd($column, $direction = 'asc', $relations = [], $withTrashed = false, $selects = [])
+    {
+        try {
+            $query = $this->initiateQuery($relations, $withTrashed, $selects);
+            return $query->orderByRaw(" if($column = '' or $column is null,1,0),$column $direction")->get();
+        } catch (\Illuminate\Database\QueryException $exc) {
+            Log::error($exc->getMessage(), $exc->getTrace());
+            return null;
+        }
+    }
+
+    /**
      * @param bool $withTrashed
      * @return mixed
      */
@@ -260,6 +282,8 @@ abstract class BaseRepository implements RepositoryInterface
             return false;
         }
     }
+
+
 
     /**
      * @param $id

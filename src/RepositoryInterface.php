@@ -75,6 +75,16 @@ interface RepositoryInterface
     public function getAll(array $relations = [], $withTrashed = false, $selects = []);
 
     /**
+     * @param string $column
+     * @param string $direction
+     * @param array $relations
+     * @param bool $withTrashed
+     * @param array $selects
+     * @return $this
+     */
+    public function getAllOrderByWithEmptyAtEnd($column, $direction = 'asc', $relations = [], $withTrashed = false, $selects = []);
+
+    /**
      * @param bool $withTrashed
      * @return mixed
      */
