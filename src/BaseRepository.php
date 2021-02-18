@@ -234,6 +234,34 @@ abstract class BaseRepository implements RepositoryInterface
     }
 
     /**
+     * remove the entry in database if the model is already soft-deleted
+     * soft delete the model the first time and the next time force delete it
+     * @param $id
+     * @return bool
+     */
+    public function destroyThenForceDelete( $id)
+    {
+        try {
+
+            $elm = $this->model->withTrashed()->find($id);
+
+            if (!$elm) {
+                return false;
+            }
+
+            if($elm->trashed()){
+                return $elm->forceDelete();
+            }else{
+                return $elm->delete();
+            }
+
+        } catch (\Illuminate\Database\QueryException $exc) {
+            Log::error($exc->getMessage(), $exc->getTrace());
+            return false;
+        }
+    }
+
+    /**
      * @param $id
      * @return bool
      */
@@ -268,4 +296,6 @@ abstract class BaseRepository implements RepositoryInterface
 
         return $query;
     }
+
+
 }

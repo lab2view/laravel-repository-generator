@@ -114,5 +114,11 @@ interface RepositoryInterface
      * @param $id
      * @return bool
      */
+    public function destroyThenForceDelete($id);
+
+    /**
+     * @param $id
+     * @return bool
+     */
     public function restore($id);
 }
