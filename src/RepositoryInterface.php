@@ -47,6 +47,16 @@ interface RepositoryInterface
     public function getById($id, $relations = [], $withTrashed = false, $selects = []);
 
     /**
+     * @param $id
+     * @param array $relations
+     * @param bool $withTrashed
+     * @param array $selects
+     * @throws Illuminate\Database\Eloquent\ModelNotFoundException
+     * @return mixed
+     */
+    public function getByIdOrFail($id, $relations = [], $withTrashed = false, $selects = []);
+
+    /**
      * @param $key
      * @param $value
      * @param array $relations

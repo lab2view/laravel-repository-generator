@@ -103,6 +103,24 @@ abstract class BaseRepository implements RepositoryInterface
     }
 
     /**
+     * @param $id
+     * @param array $relations
+     * @param bool $withTrashed
+     * @param array $selects
+     * @return mixed
+     */
+    public function getByIdOrFail($id, $relations = [], $withTrashed = false, $selects = [])
+    {
+        try {
+            $query = $this->initiateQuery($relations, $withTrashed, $selects);
+            return $query->findOrFail($id);
+        } catch (\Illuminate\Database\QueryException $exc) {
+            Log::error($exc->getMessage(), $exc->getTrace());
+            return null;
+        }
+    }
+
+    /**
      * @param $key
      * @param $value
      * @param array $relations
