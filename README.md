@@ -54,15 +54,23 @@ The following methods are available:
 
     public function getByAttribute(string $attr_name, $attr_value, $relations = [], $withTrashed = false, $selects = [])
 
-    public function getPaginate(int $n, $relations = [], $withTrashed = false, $selects = []);
+    public function getPaginate(int $n, $relations = [], $withTrashed = false, $selects = [])
 
     public function store(Array $inputs)
 
+    public function updateBlank(array $searchCriterias, array $newValues)
+
     public function getById($id, $relations = [], $withTrashed = false, $selects = [])
+
+    public function getByIdOrFail($id, $relations = [], $withTrashed = false, $selects = [])
+
+    public function getByIdEmptyAttributes($id, $withTrashed = false, $selects = [])
 
     public function search($key, $value, $relations = [], $withTrashed = false, $selects = [])
 
     public function getAll($relations = [], $withTrashed = false, $selects = [])
+
+    public function getAllOrderByWithEmptyAtEnd($column, $direction = 'asc', $relations = [], $withTrashed = false, $selects = []);
 
     public function countAll($withTrashed = false)
 
@@ -73,6 +81,8 @@ The following methods are available:
     public function destroy($id)
 
     public function destroyAll()
+
+    public function destroyThenForceDelete($id)
 
     public function forceDelete($id)
 
