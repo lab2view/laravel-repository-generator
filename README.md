@@ -27,13 +27,13 @@ And finally, use the repository in the controller:
 ```php
 <?php namespace App\Http\Controllers;
 
-use App\Repositories\UserRepository;
+use App\Repositories\PostRepository;
 
 class PostController extends Controller {
 
     private $postRepository;
     
-    public function __construct(UserRepository $postRepository)
+    public function __construct(PostRepository $postRepository)
     {
         $this->postRepository = $postRepository;
     }
