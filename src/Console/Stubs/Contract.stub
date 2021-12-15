@@ -1,7 +1,7 @@
 <?php
 namespace {{ contracts_namespace }};
 
-{{ user_statement_for_contract }}
+{{ use_statement_for_contract }}
 
 /**
  * Interface {{ contract }}

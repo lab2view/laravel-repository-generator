@@ -11,9 +11,10 @@ return [
     |
     */
 
+    'models_directory' => app_path('Models/'),
     'contracts_directory' => app_path('Contracts/'),
     'repositories_directory' => app_path('Repositories/'),
-    'models_directory' => app_path('Models/'),
+    'policies_directory' => app_path('Policies/'),
 
     /*
     |--------------------------------------------------------------------------
@@ -24,8 +25,9 @@ return [
     |
     */
     'models_namespace' => 'App\Models',
-    'repositories_namespace' => 'App\Repositories',
     'contracts_namespace' => 'App\Contracts',
+    'repositories_namespace' => 'App\Repositories',
+    'policies_namespace' => 'App\Policies',
 
     /*
     |--------------------------------------------------------------------------
@@ -51,4 +53,7 @@ return [
     'base_contract_file' => 'RepositoryInterface.php',
     // Interface name as string
     'base_contract_interface' => \Lab2view\RepositoryGenerator\RepositoryInterface::class,
+
+    // Base class name as string
+    'base_policy_file' => \Lab2view\RepositoryGenerator\BasePolicy::class,
 ];

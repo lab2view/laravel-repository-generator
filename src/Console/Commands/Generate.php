@@ -15,9 +15,11 @@ class Generate extends Command
      */
     protected $signature = "make:repositories 
         {--c|contracts} 
-        {--mn|models-namespace= : The path to the models you want to generate the repositories for}
-        {--cn|contracts-namespace= : The path where we'll generate the contracts}
-        {--rn|repositories-namespace= : The path where we'll generate the repositories}";
+        {--p|policies} 
+        {--mn|models-namespace= : The path to the models you want to generate the repositories for} 
+        {--cn|contracts-namespace= : The path where we'll generate the contracts} 
+        {--rn|repositories-namespace= : The path where we'll generate the repositories} 
+        {--pn|policies-namespace= : The path where we'll generate the policies}";
 
     /**
      * The console command description.
@@ -32,13 +34,15 @@ class Generate extends Command
      * @var bool
      */
     protected bool $override = false;
-    private ?string $modelsNamespace = null;
-    private ?string $contractsNamespace = null;
-    private ?string $repositoriesNamespace = null;
-    private bool $hasContract = false;
-    protected array $models = [];
+    protected ?string $repositoriesNamespace = null;
+    protected ?string $contractsNamespace = null;
+    protected ?string $policiesNamespace = null;
+    protected ?string $modelsNamespace = null;
     protected array $directories = [];
     protected array $namespaces = [];
+    protected array $models = [];
+    protected bool $hasContracts = false;
+    protected bool $hasPolicies = false;
 
     public function __construct()
     {
@@ -47,12 +51,14 @@ class Generate extends Command
         $this->directories = [
             'contracts' => config('repository-generator.contracts_directory'),
             'repositories' => config('repository-generator.repositories_directory'),
+            'policies' => config('repository-generator.policies_directory'),
             'models' => config('repository-generator.models_directory')
         ];
 
         $this->namespaces = [
             'contracts' => config('repository-generator.contracts_namespace'),
             'repositories' => config('repository-generator.repositories_namespace'),
+            'policies' => config('repository-generator.policies_namespace'),
             'models' => config('repository-generator.models_namespace')
         ];
     }
@@ -79,11 +85,18 @@ class Generate extends Command
             $this->noModelsMessage();
         }
 
-        if ($this->hasContract = $this->option('contracts')) {
+        if ($this->hasContracts = $this->option('contracts')) {
             // Check contracts folder permissions.
             $this->checkContractsPermissions();
 
             $this->createContracts();
+        }
+
+        if ($this->option('policies')) {
+            // Check if policies are required.
+            $this->checkPoliciesPermissions();
+
+            $this->createPolicies();
         }
 
         $this->createRepositories();
@@ -145,6 +158,23 @@ class Generate extends Command
         }
 
         return $this->directories['contracts'] . DIRECTORY_SEPARATOR . $path;
+    }
+
+    /**
+     * Get policies path.
+     *
+     * @param null|string $path
+     * @return string
+     */
+    private function policiesPath(string $path = null): string
+    {
+        $this->policiesNamespace = $this->option('policies-namespace');
+        if ($this->policiesNamespace !== null) {
+            $this->namespaces['policies'] = $this->generateNamespace($this->policiesNamespace);
+            $this->directories['policies'] = $this->fileNamespace($this->namespaces['policies']);
+        }
+
+        return $this->directories['policies'] . DIRECTORY_SEPARATOR . $path;
     }
 
     /**
@@ -252,6 +282,28 @@ class Generate extends Command
     }
 
     /**
+     * @throws FileException
+     */
+    private function checkPoliciesPermissions()
+    {
+        // Get full path of policies directory.
+        $policiesPath = $this->policiesPath();
+
+        // Get parent directory of policies path.
+        $policiesParentPath = $this->parentPath($policiesPath);
+
+        // Check parent of policies directory is writable.
+        if (!file_exists($policiesPath) && !is_writable($policiesParentPath)) {
+            throw FileException::notWritableDirectory($policiesParentPath);
+        }
+
+        // Check policies' directory permissions.
+        if (file_exists($policiesPath) && !is_writable($policiesPath)) {
+            throw FileException::notWritableDirectory($policiesPath);
+        }
+    }
+
+    /**
      * @param string $folder
      * @return void
      */
@@ -276,6 +328,104 @@ class Generate extends Command
         exit;
     }
 
+    protected function createPolicies()
+    {
+        // Create policies folder if it's necessary.
+        $this->createFolder($this->directories['policies']);
+
+        // Get existing policy file names.
+        $existingPolicyFiles = glob($this->policiesPath('*.php'));
+
+        // Remove main policy file name from array
+        $existingPolicyFiles = array_diff(
+            $existingPolicyFiles,
+            [$this->policiesPath(config('repository-generator.base_policy_file'))]
+        );
+
+        // Ask for overriding, If there are files in policies directory.
+        if (count($existingPolicyFiles) > 0 && ! $this->override) {
+            if ($this->confirm('Do you want to overwrite the existing files? (Yes/No):')) {
+                $this->override = true;
+            }
+        }
+
+        // Get stub file templates.
+        $policyStub = $this->getStub('Policy');
+
+        // Policy stub values those should be changed by command.
+        $policyStubValues = [
+            '{{ use_statement_for_policy }}',
+            '{{ policies_namespace }}',
+            '{{ base_policy }}',
+            '{{ policy }}',
+            '{{ models_namespace }}',
+            '{{ model }}'
+        ];
+
+        if ($this->hasContracts) {
+            $policyStubValues[] = '{{ use_statement_for_contract }}';
+        }
+
+        foreach ($this->models as $model) {
+            $policy = $model . 'Policy';
+
+            // Current policy file name
+            $policyFile = $this->policiesPath($policy . '.php');
+
+            // Check main policy file's path to add use
+            $useStatementForPolicy = false;
+            if (dirname($policyFile) !== dirname(config('repository-generator.base_policy_file'))) {
+                $mainPolicy = config('repository-generator.base_policy_class');
+                $useStatementForPolicy = 'use ' . $mainPolicy . ';';
+            }
+
+            // Check main policy file's path to add use
+            $useStatementForContract = false;
+            if ($this->hasPolicies) {
+                // Current policy file name
+                $contractFile = $this->contractsPath($model . 'Policy.php');
+
+                if (is_file($contractFile)) {
+                    $mainContract = $this->namespaces['contracts'];
+                    $useStatementForContract = 'use ' . $mainContract . '\\' . $model . 'Policy;';
+                }
+            }
+
+            // Fillable policy values for generating real files
+            $policyValues = [
+                $useStatementForPolicy ?: '',
+                $this->namespaces['policies'],
+                str_replace('.php', '', config('repository-generator.base_policy_file')),
+                $policy,
+                $this->namespaces['models'],
+                $model
+            ];
+
+            if ($this->hasContracts) {
+                $policyValues[] = $useStatementForContract ?: '';
+            }
+
+            // Generate body of the policy file
+            $policyContent = str_replace(
+                $policyStubValues,
+                $policyValues,
+                $policyStub
+            );
+
+            if (in_array($policyFile, $existingPolicyFiles)) {
+                if ($this->override) {
+                    $this->writeFile($policyFile, $policyContent);
+                    $this->info('Overridden policy file: ' . $policy);
+                }
+            } else {
+                $this->writeFile($policyFile, $policyContent);
+                $this->info('Created policy file: ' . $policy);
+            }
+
+            $this->override = false;
+        }
+    }
+
     protected function createRepositories()
     {
         // Create repositories folder if it's necessary.
@@ -298,11 +448,11 @@ class Generate extends Command
         }
 
         // Get stub file templates.
-        $repositoryStub = $this->getStub($this->hasContract ? 'RepositoryEloquent' : 'Repository');
+        $repositoryStub = $this->getStub($this->hasContracts ? 'RepositoryEloquent' : 'Repository');
 
         // Repository stub values those should be changed by command.
         $repositoryStubValues = [
-            '{{ user_statement_for_repository }}',
+            '{{ use_statement_for_repository }}',
             '{{ repositories_namespace }}',
             '{{ base_repository }}',
             '{{ repository }}',
@@ -310,12 +460,12 @@ class Generate extends Command
             '{{ model }}'
         ];
 
-        if ($this->hasContract) {
-            $repositoryStubValues[] = '{{ user_statement_for_contract }}';
+        if ($this->hasContracts) {
+            $repositoryStubValues[] = '{{ use_statement_for_contract }}';
         }
 
         foreach ($this->models as $model) {
-            $repository = $model . ($this->hasContract ? 'RepositoryEloquent' : 'Repository');
+            $repository = $model . ($this->hasContracts ? 'RepositoryEloquent' : 'Repository');
 
             // Current repository file name
             $repositoryFile = $this->repositoriesPath($repository . '.php');
@@ -329,7 +479,7 @@ class Generate extends Command
 
             // Check main repository file's path to add use
             $useStatementForContract = false;
-            if ($this->hasContract) {
+            if ($this->hasContracts) {
                 // Current repository file name
                 $contractFile = $this->contractsPath($model . 'Repository.php');
 
@@ -349,7 +499,7 @@ class Generate extends Command
                 $model
             ];
 
-            if ($this->hasContract) {
+            if ($this->hasContracts) {
                 $repositoryValues[] = $useStatementForContract ?: '';
             }
 
@@ -415,7 +565,7 @@ class Generate extends Command
 
         // Contract stub values those should be changed by command.
         $contractStubValues = [
-            '{{ user_statement_for_contract }}',
+            '{{ use_statement_for_contract }}',
             '{{ contracts_namespace }}',
             '{{ base_contract }}',
             '{{ contract }}'
