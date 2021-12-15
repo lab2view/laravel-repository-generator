@@ -2,7 +2,6 @@
 namespace {{ repositories_namespace }};
 
 {{ user_statement_for_repository }}
-
 use {{ models_namespace }}\{{ model }};
 
 class {{ repository }} extends {{ base_repository }}

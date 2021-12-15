@@ -1,7 +1,6 @@
 <?php
 namespace {{ contracts_namespace }};
 
-use Illuminate\Http\Request;
 {{ user_statement_for_contract }}
 
 /**

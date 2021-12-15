@@ -3,7 +3,6 @@ namespace {{ repositories_namespace }};
 
 {{ user_statement_for_repository }}
 {{ user_statement_for_contract }}
-
 use {{ models_namespace }}\{{ model }};
 
 class {{ repository }} extends {{ base_repository }} implements {{ model }}Repository

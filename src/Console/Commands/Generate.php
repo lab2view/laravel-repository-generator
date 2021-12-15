@@ -13,7 +13,11 @@ class Generate extends Command
      *
      * @var string
      */
-    protected $signature = 'make:repositories {--c|contracts}';
+    protected $signature = "make:repositories 
+        {--c|contracts} 
+        {--mn|models-namespace= : The path to the models you want to generate the repositories for}
+        {--cn|contracts-namespace= : The path where we'll generate the contracts}
+        {--rn|repositories-namespace= : The path where we'll generate the repositories}";
 
     /**
      * The console command description.
@@ -27,10 +31,31 @@ class Generate extends Command
      *
      * @var bool
      */
-    protected $override = false;
+    protected bool $override = false;
+    private ?string $modelsNamespace = null;
+    private ?string $contractsNamespace = null;
+    private ?string $repositoriesNamespace = null;
+    private bool $hasContract = false;
+    protected array $models = [];
+    protected array $directories = [];
+    protected array $namespaces = [];
 
-    private $hasContract = false;
-    protected $models = [];
+    public function __construct()
+    {
+        parent::__construct();
+
+        $this->directories = [
+            'contracts' => config('repository-generator.contracts_directory'),
+            'repositories' => config('repository-generator.repositories_directory'),
+            'models' => config('repository-generator.models_directory')
+        ];
+
+        $this->namespaces = [
+            'contracts' => config('repository-generator.contracts_namespace'),
+            'repositories' => config('repository-generator.repositories_namespace'),
+            'models' => config('repository-generator.models_namespace')
+        ];
+    }
 
     /**
      * Execute the console command.
@@ -43,6 +68,8 @@ class Generate extends Command
     {
         // Check repositories' folder permissions.
         $this->checkRepositoriesPermissions();
+
+        $this->modelsNamespace = $this->option('models-namespace');
 
         // Get all model file names.
         $this->models = $this->getModels();
@@ -65,14 +92,26 @@ class Generate extends Command
     /**
      * Get all model names from models directory.
      *
-     * @param string|null $path
      * @return array
      */
-    private function getModels(string $path = null)
+    private function getModels(): array
     {
-        $modelsDirectory = $path ?? config('repository-generator.models_directory');
-        $models = glob($modelsDirectory . '*');
-        return str_replace([$modelsDirectory, '.php'], '', $models);
+        if ($this->modelsNamespace !== null) {
+            $this->namespaces['models'] = $this->generateNamespace($this->modelsNamespace);
+            $modelsDirectory = rtrim($this->modelsNamespace, '/');
+            if (substr($modelsDirectory, -1) !== '\\') {
+                $modelsDirectory .= '\\';
+            }
+            $this->directories['models'] = $modelsDirectory;
+        }
+
+        if (! is_dir($this->directories['models'])) {
+            $this->error('The models directory does not exist.');
+            exit;
+        }
+
+        $models = glob($this->directories['models'] . '*.php');
+        return str_replace([$this->directories['models'], '.php'], '', $models);
     }
 
     /**
@@ -99,7 +138,13 @@ class Generate extends Command
      */
     private function contractsPath(string $path = null): string
     {
-        return config('repository-generator.contracts_directory') . $path;
+        $this->contractsNamespace = $this->option('contracts-namespace');
+        if ($this->contractsNamespace !== null) {
+            $this->namespaces['contracts'] = $this->generateNamespace($this->contractsNamespace);
+            $this->directories['contracts'] = $this->fileNamespace($this->namespaces['contracts']);
+        }
+
+        return $this->directories['contracts'] . DIRECTORY_SEPARATOR . $path;
     }
 
     /**
@@ -110,7 +155,26 @@ class Generate extends Command
      */
     private function repositoriesPath(string $path = null): string
     {
-        return config('repository-generator.repositories_directory') . $path;
+        $this->repositoriesNamespace = $this->option('repositories-namespace');
+        if ($this->repositoriesNamespace !== null) {
+            $this->namespaces['repositories'] = $this->generateNamespace($this->repositoriesNamespace);
+            $this->directories['repositories'] = $this->fileNamespace($this->namespaces['repositories']);
+        }
+
+        return $this->directories['repositories'] . DIRECTORY_SEPARATOR . $path;
+    }
+
+    /**
+     * @param string $class
+     * @return string|null
+     */
+    public function fileNamespace(string $class): ?string
+    {
+        if (in_array(mb_strtolower(substr($class, 0, 4)), ['app\\', 'app/'])) {
+            return app_path(substr($class, 4));
+        }
+
+        return null;
     }
 
     /**
@@ -119,12 +183,13 @@ class Generate extends Command
      * @param string $child
      * @return string
      */
-    private function parentPath(string $child = 'repositories'): string
+    private function parentPath(string $child): string
     {
-        $childPath = $child . 'Path';
-        $childPath = $this->$childPath();
+        if (! is_dir($child)) {
+            mkdir($child, 0777, true);
+        }
 
-        return dirname($childPath);
+        return dirname($child);
     }
 
     /**
@@ -149,7 +214,7 @@ class Generate extends Command
         $repositoriesPath = $this->repositoriesPath();
 
         // Get parent directory of repository path.
-        $repositoryParentPath = $this->parentPath();
+        $repositoryParentPath = $this->parentPath($repositoriesPath);
 
         // Check parent of repository directory is writable.
         if (!file_exists($repositoriesPath) && !is_writable($repositoryParentPath)) {
@@ -173,7 +238,7 @@ class Generate extends Command
         $contractsPath = $this->contractsPath();
 
         // Get parent directory of contracts path.
-        $contractsParentPath = $this->parentPath('contracts');
+        $contractsParentPath = $this->parentPath($contractsPath);
 
         // Check parent of contracts directory is writable.
         if (!file_exists($contractsPath) && !is_writable($contractsParentPath)) {
@@ -187,11 +252,12 @@ class Generate extends Command
     }
 
     /**
-     * @param $folder
+     * @param string $folder
+     * @return void
      */
-    private function createFolder($folder)
+    private function createFolder(string $folder): void
     {
-        if (!file_exists($folder)) {
+        if (! file_exists($folder)) {
             mkdir($folder);
         }
     }
@@ -213,7 +279,7 @@ class Generate extends Command
     protected function createRepositories()
     {
         // Create repositories folder if it's necessary.
-        $this->createFolder(config('repository-generator.repositories_directory'));
+        $this->createFolder($this->directories['repositories']);
 
         // Get existing repository file names.
         $existingRepositoryFiles = glob($this->repositoriesPath('*.php'));
@@ -268,7 +334,7 @@ class Generate extends Command
                 $contractFile = $this->contractsPath($model . 'Repository.php');
 
                 if (is_file($contractFile)) {
-                    $mainContract = config('repository-generator.contracts_namespace');
+                    $mainContract = $this->namespaces['contracts'];
                     $useStatementForContract = 'use ' . $mainContract . '\\' . $model . 'Repository;';
                 }
             }
@@ -276,10 +342,10 @@ class Generate extends Command
             // Fillable repository values for generating real files
             $repositoryValues = [
                 $useStatementForRepository ?: '',
-                config('repository-generator.repositories_namespace'),
+                $this->namespaces['repositories'],
                 str_replace('.php', '', config('repository-generator.base_repository_file')),
                 $repository,
-                config('repository-generator.models_namespace'),
+                $this->namespaces['models'],
                 $model
             ];
 
@@ -303,13 +369,30 @@ class Generate extends Command
                 $this->writeFile($repositoryFile, $repositoryContent);
                 $this->info('Created repository file: ' . $repository);
             }
+
+            $this->override = false;
         }
+    }
+
+    /**
+     * @param string $namespace
+     * @return string
+     */
+    public function generateNamespace(string $namespace): string
+    {
+        return ucwords(str_replace('/', '\\', $namespace), '\\');
     }
 
     protected function createContracts()
     {
+        $this->contractsNamespace = $this->option('contracts-namespace');
+        if ($this->contractsNamespace !== null) {
+            $this->contractsNamespace = $this->generateNamespace($this->contractsNamespace);
+            $this->namespaces['contracts'] = $this->contractsNamespace;
+        }
+
         // Create contracts folder if it's necessary.
-        $this->createFolder(config('repository-generator.contracts_directory'));
+        $this->createFolder($this->namespaces['contracts']);
 
         // Get existing contract file names.
         $existingContractFiles = glob($this->contractsPath('*.php'));
@@ -354,7 +437,7 @@ class Generate extends Command
             // Fillable contract values for generating real files
             $contractValues = [
                 $useStatementForContract ?: '',
-                config('repository-generator.contracts_namespace'),
+                $this->generateNamespace($this->namespaces['contracts']),
                 str_replace('.php', '', config('repository-generator.base_contract_file')),
                 $contract
             ];
@@ -375,6 +458,8 @@ class Generate extends Command
                 $this->writeFile($contractFile, $contractContent);
                 $this->info('Created contract file: ' . $contract);
             }
+
+            $this->override = false;
         }
     }
 }
