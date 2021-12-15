@@ -92,7 +92,7 @@ class Generate extends Command
             $this->createContracts();
         }
 
-        if ($this->option('policies')) {
+        if ($this->hasPolicies = $this->option('policies')) {
             // Check if policies are required.
             $this->checkPoliciesPermissions();
 
@@ -354,17 +354,15 @@ class Generate extends Command
 
         // Policy stub values those should be changed by command.
         $policyStubValues = [
+            '{{ use_statement_for_user_model }}',
             '{{ use_statement_for_policy }}',
             '{{ policies_namespace }}',
             '{{ base_policy }}',
             '{{ policy }}',
             '{{ models_namespace }}',
-            '{{ model }}'
+            '{{ model }}',
+            '{{ modelVariable }}'
         ];
-
-        if ($this->hasContracts) {
-            $policyStubValues[] = '{{ use_statement_for_contract }}';
-        }
 
         foreach ($this->models as $model) {
             $policy = $model . 'Policy';
@@ -374,36 +372,29 @@ class Generate extends Command
 
             // Check main policy file's path to add use
             $useStatementForPolicy = false;
-            if (dirname($policyFile) !== dirname(config('repository-generator.base_policy_file'))) {
-                $mainPolicy = config('repository-generator.base_policy_class');
-                $useStatementForPolicy = 'use ' . $mainPolicy . ';';
+            if (dirname($policyFile) !== dirname($this->directories['policies'])) {
+                $useStatementForPolicy = 'use ' . config('repository-generator.base_policy_class') . ';';
             }
 
-            // Check main policy file's path to add use
-            $useStatementForContract = false;
-            if ($this->hasPolicies) {
-                // Current policy file name
-                $contractFile = $this->contractsPath($model . 'Policy.php');
+            // User Model
+            $userClass = config('repository-generator.user_class');
+            $useStatementForUserModel = false;
 
-                if (is_file($contractFile)) {
-                    $mainContract = $this->namespaces['contracts'];
-                    $useStatementForContract = 'use ' . $mainContract . '\\' . $model . 'Policy;';
-                }
+            if (class_exists($userClass)) {
+                $useStatementForUserModel = 'use ' . $userClass . ';';
             }
 
             // Fillable policy values for generating real files
             $policyValues = [
+                $useStatementForUserModel ?: '',
                 $useStatementForPolicy ?: '',
                 $this->namespaces['policies'],
                 str_replace('.php', '', config('repository-generator.base_policy_file')),
                 $policy,
                 $this->namespaces['models'],
-                $model
+                $model,
+                mb_strtolower($model)
             ];
-
-            if ($this->hasContracts) {
-                $policyValues[] = $useStatementForContract ?: '';
-            }
 
             // Generate body of the policy file
             $policyContent = str_replace(

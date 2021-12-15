@@ -2,6 +2,8 @@
 
 return [
 
+    'user_class' => 'App\\Models\\User',
+
     /*
     |--------------------------------------------------------------------------
     | Directories
@@ -55,5 +57,6 @@ return [
     'base_contract_interface' => \Lab2view\RepositoryGenerator\RepositoryInterface::class,
 
     // Base class name as string
-    'base_policy_file' => \Lab2view\RepositoryGenerator\BasePolicy::class,
+    'base_policy_class' => \Lab2view\RepositoryGenerator\BasePolicy::class,
+    'base_policy_file' => 'BasePolicy.php',
 ];

@@ -5,27 +5,27 @@ namespace {{ policies_namespace }};
 {{ use_statement_for_user_model }}
 use {{ models_namespace }}\{{ model }};
 
-class {{ policy }}Policy extends {{ base_policy }}
+class {{ policy }} extends {{ base_policy }}
 {
     /**
     * Determine whether the user can view any models.
     *
-    * @param  User $user
+    * @param  User|null $user
     * @return bool
     */
-    public function viewAny(User $user): bool
+    public function viewAny(?User $user): bool
     {
-        return $user != null;
+        return $user->exists || is_null($user);
     }
 
     /**
     * Determine whether the user can view the model.
     *
     * @param  User    $user
-    * @param  {{model}} ${{ modelVariable }}
+    * @param  {{ model }} ${{ modelVariable }}
     * @return bool
     */
-    public function view(User $user, {{model}} ${{ modelVariable }}): bool
+    public function view(User $user, {{ model }} ${{ modelVariable }}): bool
     {
         return ${{ modelVariable }}->exists && $user->exists;
     }
@@ -38,17 +38,17 @@ class {{ policy }}Policy extends {{ base_policy }}
     */
     public function create(User $user): bool
     {
-        return $user != null;
+        return $user->exists;
     }
 
     /**
     * Determine whether the user can update the model.
     *
     * @param  User    $user
-    * @param  {{model}} ${{ modelVariable }}
+    * @param  {{ model }} ${{ modelVariable }}
     * @return bool
     */
-    public function update(User $user, {{model}} ${{ modelVariable }}): bool
+    public function update(User $user, {{ model }} ${{ modelVariable }}): bool
     {
         return ${{ modelVariable }}->exists && $user->exists;
     }
@@ -57,10 +57,10 @@ class {{ policy }}Policy extends {{ base_policy }}
     * Determine whether the user can delete the model.
     *
     * @param  User    $user
-    * @param  {{model}} ${{ modelVariable }}
+    * @param  {{ model }} ${{ modelVariable }}
     * @return bool
     */
-    public function delete(User $user, {{model}} ${{ modelVariable }}): bool
+    public function delete(User $user, {{ model }} ${{ modelVariable }}): bool
     {
         return ${{ modelVariable }}->exists && $user->exists;
     }
@@ -69,10 +69,10 @@ class {{ policy }}Policy extends {{ base_policy }}
     * Determine whether the user can restore the model.
     *
     * @param  User    $user
-    * @param  {{model}} ${{ modelVariable }}
+    * @param  {{ model }} ${{ modelVariable }}
     * @return bool
     */
-    public function restore(User $user, {{model}} ${{ modelVariable }}): bool
+    public function restore(User $user, {{ model }} ${{ modelVariable }}): bool
     {
         return ${{ modelVariable }}->exists && $user->exists;
     }
@@ -81,10 +81,10 @@ class {{ policy }}Policy extends {{ base_policy }}
     * Determine whether the user can permanently delete the model.
     *
     * @param  User    $user
-    * @param  {{model}} ${{ modelVariable }}
+    * @param  {{ model }} ${{ modelVariable }}
     * @return bool
     */
-    public function forceDelete(User $user, {{model}} ${{ modelVariable }}): bool
+    public function forceDelete(User $user, {{ model }} ${{ modelVariable }}): bool
     {
         return ${{ modelVariable }}->exists && $user->exists;
     }
