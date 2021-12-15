@@ -204,6 +204,10 @@ class Generate extends Command
             return app_path(substr($class, 4));
         }
 
+        if (class_exists($class)) {
+            return base_path($class));
+        }
+
         return null;
     }
 
@@ -369,7 +373,7 @@ class Generate extends Command
             $policyFile = $this->policiesPath($policy . '.php');
 
             // User Model
-            $userClass = config('repository-generator.user_class');
+            $userClass = config('repository-generator.user_model_class');
             $useStatementForUserModel = false;
 
             if (class_exists($userClass)) {
