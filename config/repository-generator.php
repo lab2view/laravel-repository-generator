@@ -2,7 +2,7 @@
 
 return [
 
-    'user_class' => 'App\\Models\\User',
+    'user_model_class' => 'App\\Models\\User',
 
     /*
     |--------------------------------------------------------------------------
