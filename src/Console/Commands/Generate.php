@@ -205,7 +205,7 @@ class Generate extends Command
         }
 
         if (class_exists($class)) {
-            return base_path($class));
+            return base_path($class);
         }
 
         return null;
