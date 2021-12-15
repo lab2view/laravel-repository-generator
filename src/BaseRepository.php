@@ -24,12 +24,12 @@ abstract class BaseRepository implements RepositoryInterface
      * @param bool $withTrashed
      * @return bool
      */
-    public function exists(string $key, $value, $withTrashed = false)
+    public function exists(string $key, $value, bool $withTrashed = false): bool
     {
         try {
             $query = $this->model->where($key, $value);
             if ($withTrashed)
-                $query = $query->withTrashed();
+                $query = $query->hasMacro('withTrashed') ? $query->withTrashed() : $query;
 
             return $query->exists();
         } catch (\Illuminate\Database\QueryException $exc) {
@@ -46,7 +46,7 @@ abstract class BaseRepository implements RepositoryInterface
      * @param array $selects
      * @return mixed|null
      */
-    public function getByAttribute(string $attr_name, $attr_value, $relations = [], $withTrashed = false, $selects = [])
+    public function getByAttribute(string $attr_name, $attr_value, array $relations = [], bool $withTrashed = false, array $selects = [])
     {
         try {
             $query = $this->initiateQuery($relations, $withTrashed, $selects);
@@ -64,7 +64,7 @@ abstract class BaseRepository implements RepositoryInterface
      * @param array $selects
      * @return mixed
      */
-    public function getPaginate(int $n, $relations = [], $withTrashed = false, $selects = [])
+    public function getPaginate(int $n, array $relations = [], bool $withTrashed = false, array $selects = [])
     {
         $query = $this->initiateQuery($relations, $withTrashed, $selects);
         return $query->paginate($n);
@@ -91,7 +91,7 @@ abstract class BaseRepository implements RepositoryInterface
      * @param array $selects
      * @return mixed
      */
-    public function getById($id, $relations = [], $withTrashed = false, $selects = [])
+    public function getById($id, array $relations = [], bool $withTrashed = false, array $selects = [])
     {
         try {
             $query = $this->initiateQuery($relations, $withTrashed, $selects);
@@ -110,7 +110,7 @@ abstract class BaseRepository implements RepositoryInterface
      * @param array $selects
      * @return mixed
      */
-    public function search($key, $value, $relations = [], $withTrashed = false, $selects = [])
+    public function search($key, $value, array $relations, bool $withTrashed = false, array $selects = [])
     {
         $query = $this->initiateQuery($relations, $withTrashed, $selects);
         return $query->where($key, 'like', '%' . $value . '%')
@@ -123,7 +123,7 @@ abstract class BaseRepository implements RepositoryInterface
      * @param array $selects
      * @return mixed
      */
-    public function getAll($relations = [], $withTrashed = false, $selects = [])
+    public function getAll(array $relations, bool $withTrashed = false, array $selects = [])
     {
         $query = $this->initiateQuery($relations, $withTrashed, $selects);
         return $query->get();
@@ -133,11 +133,11 @@ abstract class BaseRepository implements RepositoryInterface
      * @param bool $withTrashed
      * @return mixed
      */
-    public function countAll($withTrashed = false)
+    public function countAll(bool $withTrashed = false)
     {
         $query = $this->model;
         if ($withTrashed)
-            $query = $query->withTrashed();
+            $query = $query->hasMacro('withTrashed') ? $query->withTrashed() : $query;
 
         return $query->count();
     }
@@ -147,7 +147,7 @@ abstract class BaseRepository implements RepositoryInterface
      * @param string $attr
      * @return mixed
      */
-    public function getAllSelectable($key, $attr = 'id')
+    public function getAllSelectable($key, string $attr = 'id')
     {
         return $this->model->pluck($key, $attr);
     }
@@ -176,7 +176,7 @@ abstract class BaseRepository implements RepositoryInterface
      * @param $id
      * @return bool
      */
-    public function destroy($id)
+    public function destroy($id) : bool
     {
         try {
             $data = $this->getById($id);
@@ -190,7 +190,7 @@ abstract class BaseRepository implements RepositoryInterface
     /**
      * @return bool
      */
-    public function destroyAll()
+    public function destroyAll() : bool
     {
         try {
             return $this->model->delete();
@@ -204,7 +204,7 @@ abstract class BaseRepository implements RepositoryInterface
      * @param $id
      * @return bool
      */
-    public function forceDelete($id)
+    public function forceDelete($id) : bool
     {
         try {
             $data = $this->getById($id, [], true);
@@ -219,7 +219,7 @@ abstract class BaseRepository implements RepositoryInterface
      * @param $id
      * @return bool
      */
-    public function restore($id)
+    public function restore($id) : bool
     {
         try {
             $data = $this->getById($id, [], true);
@@ -236,7 +236,7 @@ abstract class BaseRepository implements RepositoryInterface
      * @param array $selects
      * @return mixed
      */
-    private function initiateQuery($relations = [], $withTrashed = false, $selects = [])
+    private function initiateQuery(array $relations = [], bool $withTrashed = false, array $selects = [])
     {
         $query = $this->model;
         if (count($relations) > 0)
@@ -246,7 +246,7 @@ abstract class BaseRepository implements RepositoryInterface
             $query->select($selects);
 
         if ($withTrashed)
-            $query = $query->withTrashed();
+            $query = $query->hasMacro('withTrashed') ? $query->withTrashed() : $query;
 
         return $query;
     }

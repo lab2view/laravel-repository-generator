@@ -10,7 +10,7 @@ interface RepositoryInterface
      * @param bool $withTrashed
      * @return mixed
      */
-    public function exists(string $key, $value, $withTrashed = false);
+    public function exists(string $key, $value, bool $withTrashed = false) : bool;
 
     /**
      * @param string $attr_name
@@ -20,7 +20,7 @@ interface RepositoryInterface
      * @param array $selects
      * @return mixed
      */
-    public function getByAttribute(string $attr_name, $attr_value, $relations = [], $withTrashed = false, $selects = []);
+    public function getByAttribute(string $attr_name, $attr_value, array $relations = [], bool $withTrashed = false, array $selects = []);
 
     /**
      * @param int $n
@@ -29,7 +29,7 @@ interface RepositoryInterface
      * @param array $selects
      * @return mixed
      */
-    public function getPaginate(int $n, $relations = [], $withTrashed = false, $selects = []);
+    public function getPaginate(int $n, array $relations = [], bool $withTrashed = false, array $selects = []);
 
     /**
      * @param array $inputs
@@ -44,7 +44,7 @@ interface RepositoryInterface
      * @param array $selects
      * @return mixed
      */
-    public function getById($id, $relations = [], $withTrashed = false, $selects = []);
+    public function getById($id, array $relations = [], bool $withTrashed = false, array $selects = []);
 
     /**
      * @param $key
@@ -54,7 +54,7 @@ interface RepositoryInterface
      * @param array $selects
      * @return mixed
      */
-    public function search($key, $value, array $relations, $withTrashed = false, $selects = []);
+    public function search($key, $value, array $relations, bool $withTrashed = false, array $selects = []);
 
     /**
      * @param array $relations
@@ -62,13 +62,13 @@ interface RepositoryInterface
      * @param array $selects
      * @return mixed
      */
-    public function getAll(array $relations, $withTrashed = false, $selects = []);
+    public function getAll(array $relations, bool $withTrashed = false, array $selects = []);
 
     /**
      * @param bool $withTrashed
      * @return mixed
      */
-    public function countAll($withTrashed = false);
+    public function countAll(bool $withTrashed = false);
 
     /**
      * @param $key
@@ -87,22 +87,22 @@ interface RepositoryInterface
      * @param $id
      * @return bool
      */
-    public function destroy($id);
+    public function destroy($id): bool;
 
     /**
      * @return bool
      */
-    public function destroyAll();
-
-    /**
-     * @param $id
-     * @return bool
-     */
-    public function forceDelete($id);
+    public function destroyAll(): bool;
 
     /**
      * @param $id
      * @return bool
      */
-    public function restore($id);
+    public function forceDelete($id): bool;
+
+    /**
+     * @param $id
+     * @return bool
+     */
+    public function restore($id): bool;
 }
