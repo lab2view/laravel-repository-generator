@@ -13,7 +13,7 @@ class Generate extends Command
      *
      * @var string
      */
-    protected $signature = 'make:repositories';
+    protected $signature = 'make:repositories {--c|contracts}';
 
     /**
      * The console command description.
@@ -29,6 +29,9 @@ class Generate extends Command
      */
     protected $override = false;
 
+    private $hasContract = false;
+    protected $models = [];
+
     /**
      * Execute the console command.
      *
@@ -38,103 +41,38 @@ class Generate extends Command
      */
     public function handle()
     {
-        // Check repository folder permissions.
-        $this->checkRepositoryPermissions();
-
-        // Create repository folder if it's necessary.
-        $this->createFolder(config('repository-generator.repository_directory'));
+        // Check repositories' folder permissions.
+        $this->checkRepositoriesPermissions();
 
         // Get all model file names.
-        $models = $this->getModels();
+        $this->models = $this->getModels();
 
         // Check model files.
-        if (count($models) === 0) {
+        if (count($this->models) === 0) {
             $this->noModelsMessage();
         }
 
-        // Get existing repository file names.
-        $existingRepositoryFiles = glob($this->repositoryPath('*.php'));
+        if ($this->hasContract = $this->option('contracts')) {
+            // Check contracts folder permissions.
+            $this->checkContractsPermissions();
 
-        // Remove main repository file name from array
-        $existingRepositoryFiles = array_diff(
-            $existingRepositoryFiles,
-            [$this->repositoryPath(config('repository-generator.base_repository_file'))]
-        );
-
-        // Ask for overriding, If there are files in repositories.
-        if (count($existingRepositoryFiles) > 0 && !$this->override) {
-            if ($this->confirm('Do you want to overwrite the existing files? (Yes/No):')) {
-                $this->override = true;
-            }
+            $this->createContracts();
         }
 
-        // Get stub file templates.
-        $repositoryStub = $this->getStub('Repository');
-
-        // Repository stub values those should be changed by command.
-        $repositoryStubValues = [
-            '{{ user_statement_for_repository }}',
-            '{{ repository_namespace }}',
-            '{{ base_repository }}',
-            '{{ repository }}',
-            '{{ mode_namespace }}',
-            '{{ model }}'
-        ];
-
-        foreach ($models as $model) {
-            $repository = $model . 'Repository';
-
-            // Current repository file name
-            $repositoryFile = $this->repositoryPath($repository . '.php');
-
-            // Check main repository file's path to add use
-            $useStatementForRepository = false;
-            if (dirname($repositoryFile) !== dirname(config('repository-generator.base_repository_file'))
-            ) {
-                $mainRepository = config('repository-generator.base_repository_class');
-                $useStatementForRepository = 'use ' . $mainRepository . ';';
-            }
-
-            // Fillable repository values for generating real files
-            $repositoryValues = [
-                $useStatementForRepository ? $useStatementForRepository : '',
-                config('repository-generator.repository_namespace'),
-                str_replace('.php', '', config('repository-generator.base_repository_file')),
-                $repository,
-                config('repository-generator.model_namespace'),
-                $model
-            ];
-
-            // Generate body of the repository file
-            $repositoryContent = str_replace(
-                $repositoryStubValues,
-                $repositoryValues,
-                $repositoryStub);
-
-            if (in_array($repositoryFile, $existingRepositoryFiles)) {
-                if ($this->override) {
-                    $this->writeFile($repositoryFile, $repositoryContent);
-                    $this->info('Overridden repository file: ' . $repository);
-                }
-            } else {
-                $this->writeFile($repositoryFile, $repositoryContent);
-                $this->info('Created repository file: ' . $repository);
-            }
-        }
+        $this->createRepositories();
     }
 
     /**
      * Get all model names from models directory.
      *
-     * @return array|mixed
+     * @param string|null $path
+     * @return array
      */
-    private function getModels()
+    private function getModels(string $path = null)
     {
-        $modelDirectory = config('repository-generator.model_directory');
-        $models = glob($modelDirectory . '*');
-        $models = str_replace([$modelDirectory, '.php'], '', $models);
-
-        return $models;
+        $modelsDirectory = $path ?? config('repository-generator.models_directory');
+        $models = glob($modelsDirectory . '*');
+        return str_replace([$modelsDirectory, '.php'], '', $models);
     }
 
     /**
@@ -154,14 +92,25 @@ class Generate extends Command
     }
 
     /**
-     * Get repository path.
+     * Get contracts path.
      *
-     * @param null $path
+     * @param null|string $path
      * @return string
      */
-    private function repositoryPath($path = null)
+    private function contractsPath(string $path = null): string
     {
-        return config('repository-generator.repository_directory') . $path;
+        return config('repository-generator.contracts_directory') . $path;
+    }
+
+    /**
+     * Get repositories path.
+     *
+     * @param null|string $path
+     * @return string
+     */
+    private function repositoriesPath(string $path = null): string
+    {
+        return config('repository-generator.repositories_directory') . $path;
     }
 
     /**
@@ -170,7 +119,7 @@ class Generate extends Command
      * @param string $child
      * @return string
      */
-    private function parentPath($child = 'repository')
+    private function parentPath(string $child = 'repositories'): string
     {
         $childPath = $child . 'Path';
         $childPath = $this->$childPath();
@@ -190,26 +139,50 @@ class Generate extends Command
     }
 
     /**
-     * Check repository folder permissions.
+     * Check repositories' folder permissions.
      *
      * @throws FileException
      */
-    private function checkRepositoryPermissions()
+    private function checkRepositoriesPermissions()
     {
         // Get full path of repository directory.
-        $repositoryPath = $this->repositoryPath();
+        $repositoriesPath = $this->repositoriesPath();
 
         // Get parent directory of repository path.
-        $repositoryParentPath = $this->parentPath('repository');
+        $repositoryParentPath = $this->parentPath();
 
         // Check parent of repository directory is writable.
-        if (!file_exists($repositoryPath) && !is_writable($repositoryParentPath)) {
+        if (!file_exists($repositoriesPath) && !is_writable($repositoryParentPath)) {
             throw FileException::notWritableDirectory($repositoryParentPath);
         }
 
         // Check repository directory permissions.
-        if (file_exists($repositoryPath) && !is_writable($repositoryPath)) {
-            throw FileException::notWritableDirectory($repositoryPath);
+        if (file_exists($repositoriesPath) && !is_writable($repositoriesPath)) {
+            throw FileException::notWritableDirectory($repositoriesPath);
+        }
+    }
+
+    /**
+     * Check repository folder permissions.
+     *
+     * @throws FileException
+     */
+    private function checkContractsPermissions()
+    {
+        // Get full path of contracts directory.
+        $contractsPath = $this->contractsPath();
+
+        // Get parent directory of contracts path.
+        $contractsParentPath = $this->parentPath('contracts');
+
+        // Check parent of contracts directory is writable.
+        if (!file_exists($contractsPath) && !is_writable($contractsParentPath)) {
+            throw FileException::notWritableDirectory($contractsParentPath);
+        }
+
+        // Check contracts directory permissions.
+        if (file_exists($contractsPath) && !is_writable($contractsPath)) {
+            throw FileException::notWritableDirectory($contractsPath);
         }
     }
 
@@ -231,9 +204,177 @@ class Generate extends Command
         $this->warn('Repository generator has stopped!');
         $this->line(
             'There are no model files to use in directory: "'
-            . config('repository-generator.model_directory')
+            . config('repository-generator.models_directory')
             . '"'
         );
         exit;
+    }
+
+    protected function createRepositories()
+    {
+        // Create repositories folder if it's necessary.
+        $this->createFolder(config('repository-generator.repositories_directory'));
+
+        // Get existing repository file names.
+        $existingRepositoryFiles = glob($this->repositoriesPath('*.php'));
+
+        // Remove main repository file name from array
+        $existingRepositoryFiles = array_diff(
+            $existingRepositoryFiles,
+            [$this->repositoriesPath(config('repository-generator.base_repository_file'))]
+        );
+
+        // Ask for overriding, If there are files in repositories directory.
+        if (count($existingRepositoryFiles) > 0 && ! $this->override) {
+            if ($this->confirm('Do you want to overwrite the existing files? (Yes/No):')) {
+                $this->override = true;
+            }
+        }
+
+        // Get stub file templates.
+        $repositoryStub = $this->getStub($this->hasContract ? 'RepositoryEloquent' : 'Repository');
+
+        // Repository stub values those should be changed by command.
+        $repositoryStubValues = [
+            '{{ user_statement_for_repository }}',
+            '{{ repositories_namespace }}',
+            '{{ base_repository }}',
+            '{{ repository }}',
+            '{{ models_namespace }}',
+            '{{ model }}'
+        ];
+
+        if ($this->hasContract) {
+            $repositoryStubValues[] = '{{ user_statement_for_contract }}';
+        }
+
+        foreach ($this->models as $model) {
+            $repository = $model . ($this->hasContract ? 'RepositoryEloquent' : 'Repository');
+
+            // Current repository file name
+            $repositoryFile = $this->repositoriesPath($repository . '.php');
+
+            // Check main repository file's path to add use
+            $useStatementForRepository = false;
+            if (dirname($repositoryFile) !== dirname(config('repository-generator.base_repository_file'))) {
+                $mainRepository = config('repository-generator.base_repository_class');
+                $useStatementForRepository = 'use ' . $mainRepository . ';';
+            }
+
+            // Check main repository file's path to add use
+            $useStatementForContract = false;
+            if ($this->hasContract) {
+                // Current repository file name
+                $contractFile = $this->contractsPath($model . 'Repository.php');
+
+                if (is_file($contractFile)) {
+                    $mainContract = config('repository-generator.contracts_namespace');
+                    $useStatementForContract = 'use ' . $mainContract . '\\' . $model . 'Repository;';
+                }
+            }
+
+            // Fillable repository values for generating real files
+            $repositoryValues = [
+                $useStatementForRepository ?: '',
+                config('repository-generator.repositories_namespace'),
+                str_replace('.php', '', config('repository-generator.base_repository_file')),
+                $repository,
+                config('repository-generator.models_namespace'),
+                $model
+            ];
+
+            if ($this->hasContract) {
+                $repositoryValues[] = $useStatementForContract ?: '';
+            }
+
+            // Generate body of the repository file
+            $repositoryContent = str_replace(
+                $repositoryStubValues,
+                $repositoryValues,
+                $repositoryStub
+            );
+
+            if (in_array($repositoryFile, $existingRepositoryFiles)) {
+                if ($this->override) {
+                    $this->writeFile($repositoryFile, $repositoryContent);
+                    $this->info('Overridden repository file: ' . $repository);
+                }
+            } else {
+                $this->writeFile($repositoryFile, $repositoryContent);
+                $this->info('Created repository file: ' . $repository);
+            }
+        }
+    }
+
+    protected function createContracts()
+    {
+        // Create contracts folder if it's necessary.
+        $this->createFolder(config('repository-generator.contracts_directory'));
+
+        // Get existing contract file names.
+        $existingContractFiles = glob($this->contractsPath('*.php'));
+
+        // Remove main contract file name from array
+        $existingContractFiles = array_diff(
+            $existingContractFiles,
+            [$this->contractsPath(config('repository-generator.base_contract_file'))]
+        );
+
+        // Ask for overriding, If there are files in contracts directory.
+        if (count($existingContractFiles) > 0 && ! $this->override) {
+            if ($this->confirm('Do you want to overwrite the existing files? (Yes/No):')) {
+                $this->override = true;
+            }
+        }
+
+        // Get stub file templates.
+        $contractStub = $this->getStub('Contract');
+
+        // Contract stub values those should be changed by command.
+        $contractStubValues = [
+            '{{ user_statement_for_contract }}',
+            '{{ contracts_namespace }}',
+            '{{ base_contract }}',
+            '{{ contract }}'
+        ];
+
+        foreach ($this->models as $model) {
+            $contract = $model . 'Repository';
+
+            // Current contract file name
+            $contractFile = $this->contractsPath($contract . '.php');
+
+            // Check main contract file's path to add use
+            $useStatementForContract = false;
+            if (dirname($contractFile) !== dirname(config('repository-generator.base_contract_file'))) {
+                $mainContract = config('repository-generator.base_contract_interface');
+                $useStatementForContract = 'use ' . $mainContract . ';';
+            }
+
+            // Fillable contract values for generating real files
+            $contractValues = [
+                $useStatementForContract ?: '',
+                config('repository-generator.contracts_namespace'),
+                str_replace('.php', '', config('repository-generator.base_contract_file')),
+                $contract
+            ];
+
+            // Generate body of the contract file
+            $contractContent = str_replace(
+                $contractStubValues,
+                $contractValues,
+                $contractStub
+            );
+
+            if (in_array($contractFile, $existingContractFiles)) {
+                if ($this->override) {
+                    $this->writeFile($contractFile, $contractContent);
+                    $this->info('Overridden contract file: ' . $contract);
+                }
+            } else {
+                $this->writeFile($contractFile, $contractContent);
+                $this->info('Created contract file: ' . $contract);
+            }
+        }
     }
 }

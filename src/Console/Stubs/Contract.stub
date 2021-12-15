@@ -1,0 +1,13 @@
+<?php
+namespace {{ contracts_namespace }};
+
+use Illuminate\Http\Request;
+{{ user_statement_for_contract }}
+
+/**
+ * Interface {{ contract }}
+ * @package {{ contracts_namespace }}
+ */
+interface {{ contract }} extends {{ base_contract }}
+{
+}
