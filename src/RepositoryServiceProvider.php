@@ -14,7 +14,8 @@ class RepositoryServiceProvider extends ServiceProvider
     public function register()
     {
         $this->mergeConfigFrom(
-            __DIR__ . '/../config/repository-generator.php', 'repository-generator'
+            __DIR__ . '/../config/repository-generator.php',
+            'repository-generator'
         );
         if ($this->app->runningInConsole()) {
             $this->commands([

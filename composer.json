@@ -10,7 +10,8 @@
     ],
     "minimum-stability": "dev",
     "require": {
-        "php": "^7.0|^8.0",
+        "php": "^7.4|^8.0",
+        "ext-mbstring": "*",
         "illuminate/support": "^6.0|^7.0|^8.0",
         "illuminate/console": "^6.0|^7.0|^8.0"
     },

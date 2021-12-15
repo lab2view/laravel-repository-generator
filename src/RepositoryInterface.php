@@ -14,13 +14,19 @@ interface RepositoryInterface
 
     /**
      * @param string $attr_name
-     * @param $attr_value
+     * @param mixed $attr_value
      * @param array $relations
      * @param bool $withTrashed
      * @param array $selects
      * @return mixed
      */
-    public function getByAttribute(string $attr_name, $attr_value, array $relations = [], bool $withTrashed = false, array $selects = []);
+    public function getByAttribute(
+        string $attr_name,
+        $attr_value,
+        array $relations = [],
+        bool $withTrashed = false,
+        array $selects = []
+    );
 
     /**
      * @param int $n

@@ -2,6 +2,9 @@
 
 namespace Lab2view\RepositoryGenerator;
 
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\Log;
 
 abstract class BaseRepository implements RepositoryInterface
@@ -11,9 +14,9 @@ abstract class BaseRepository implements RepositoryInterface
     /**
      * Create a new repository instance.
      *
-     * @param $model
+     * @param Model $model
      */
-    public function __construct($model)
+    public function __construct(Model $model)
     {
         $this->model = $model;
     }
@@ -28,11 +31,12 @@ abstract class BaseRepository implements RepositoryInterface
     {
         try {
             $query = $this->model->where($key, $value);
-            if ($withTrashed)
+            if ($withTrashed) {
                 $query = $query->hasMacro('withTrashed') ? $query->withTrashed() : $query;
+            }
 
             return $query->exists();
-        } catch (\Illuminate\Database\QueryException $exc) {
+        } catch (QueryException $exc) {
             Log::error($exc->getMessage(), $exc->getTrace());
             return false;
         }
@@ -40,18 +44,23 @@ abstract class BaseRepository implements RepositoryInterface
 
     /**
      * @param string $attr_name
-     * @param $attr_value
+     * @param mixed $attr_value
      * @param array $relations
      * @param bool $withTrashed
      * @param array $selects
      * @return mixed|null
      */
-    public function getByAttribute(string $attr_name, $attr_value, array $relations = [], bool $withTrashed = false, array $selects = [])
-    {
+    public function getByAttribute(
+        string $attr_name,
+        $attr_value,
+        array $relations = [],
+        bool $withTrashed = false,
+        array $selects = []
+    ) {
         try {
             $query = $this->initiateQuery($relations, $withTrashed, $selects);
             return $query->where($attr_name, $attr_value)->first();
-        } catch (\Illuminate\Database\QueryException $exc) {
+        } catch (QueryException $exc) {
             Log::error($exc->getMessage(), $exc->getTrace());
             return null;
         }
@@ -78,7 +87,7 @@ abstract class BaseRepository implements RepositoryInterface
     {
         try {
             return $this->model->create($inputs);
-        } catch (\Illuminate\Database\QueryException $exc) {
+        } catch (QueryException $exc) {
             Log::error($exc->getMessage(), $exc->getTrace());
             return null;
         }
@@ -96,7 +105,7 @@ abstract class BaseRepository implements RepositoryInterface
         try {
             $query = $this->initiateQuery($relations, $withTrashed, $selects);
             return $query->find($id);
-        } catch (\Illuminate\Database\QueryException $exc) {
+        } catch (QueryException $exc) {
             Log::error($exc->getMessage(), $exc->getTrace());
             return null;
         }
@@ -136,8 +145,9 @@ abstract class BaseRepository implements RepositoryInterface
     public function countAll(bool $withTrashed = false)
     {
         $query = $this->model;
-        if ($withTrashed)
+        if ($withTrashed) {
             $query = $query->hasMacro('withTrashed') ? $query->withTrashed() : $query;
+        }
 
         return $query->count();
     }
@@ -164,9 +174,10 @@ abstract class BaseRepository implements RepositoryInterface
             if ($model) {
                 $model->update($inputs);
                 return $model->fresh();
-            } else
+            } else {
                 return null;
-        } catch (\Illuminate\Database\QueryException $exc) {
+            }
+        } catch (QueryException $exc) {
             Log::error($exc->getMessage(), $exc->getTrace());
             return null;
         }
@@ -181,7 +192,7 @@ abstract class BaseRepository implements RepositoryInterface
         try {
             $data = $this->getById($id);
             return $data ? $data->delete() : false;
-        } catch (\Illuminate\Database\QueryException $exc) {
+        } catch (QueryException $exc) {
             Log::error($exc->getMessage(), $exc->getTrace());
             return false;
         }
@@ -194,7 +205,7 @@ abstract class BaseRepository implements RepositoryInterface
     {
         try {
             return $this->model->delete();
-        } catch (\Illuminate\Database\QueryException $exc) {
+        } catch (QueryException $exc) {
             Log::error($exc->getMessage(), $exc->getTrace());
             return false;
         }
@@ -209,7 +220,7 @@ abstract class BaseRepository implements RepositoryInterface
         try {
             $data = $this->getById($id, [], true);
             return $data ? $data->forceDelete() : false;
-        } catch (\Illuminate\Database\QueryException $exc) {
+        } catch (QueryException $exc) {
             Log::error($exc->getMessage(), $exc->getTrace());
             return false;
         }
@@ -224,7 +235,7 @@ abstract class BaseRepository implements RepositoryInterface
         try {
             $data = $this->getById($id, [], true);
             return $data ? $data->restore() : false;
-        } catch (\Illuminate\Database\QueryException $exc) {
+        } catch (QueryException $exc) {
             Log::error($exc->getMessage(), $exc->getTrace());
             return false;
         }
@@ -234,19 +245,22 @@ abstract class BaseRepository implements RepositoryInterface
      * @param array $relations
      * @param bool $withTrashed
      * @param array $selects
-     * @return mixed
+     * @return Builder
      */
     private function initiateQuery(array $relations = [], bool $withTrashed = false, array $selects = [])
     {
         $query = $this->model;
-        if (count($relations) > 0)
+        if (count($relations) > 0) {
             $query = $query->with($relations);
+        }
 
-        if (count($selects) > 0)
+        if (count($selects) > 0) {
             $query->select($selects);
+        }
 
-        if ($withTrashed)
+        if ($withTrashed) {
             $query = $query->hasMacro('withTrashed') ? $query->withTrashed() : $query;
+        }
 
         return $query;
     }

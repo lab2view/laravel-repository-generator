@@ -1,0 +1,103 @@
+<?php
+namespace {{ policies_namespace }};
+
+use Illuminate\Auth\Access\HandlesAuthorization;
+use {{ models_namespace }}\{{ model }};
+{{ use_statement_for_user_model }}
+
+class {{ policy }}
+{
+    use HandlesAuthorization;
+
+    /**
+     * @param  User|null $user
+     * @param  string    $ability
+     * @return bool|null
+     */
+    public function before(?User $user, string $ability): ?bool
+    {
+        return null;
+    }
+
+    /**
+    * Determine whether the user can view any models.
+    *
+    * @param  User|null $user
+    * @return bool
+    */
+    public function viewAny(?User $user): bool
+    {
+        return $user->exists || is_null($user);
+    }
+
+    /**
+    * Determine whether the user can view the model.
+    *
+    * @param  User    $user
+    * @param  {{ model }} ${{ modelVariable }}
+    * @return bool
+    */
+    public function view(User $user, {{ model }} ${{ modelVariable }}): bool
+    {
+        return ${{ modelVariable }}->exists && $user->exists;
+    }
+
+    /**
+    * Determine whether the user can create models.
+    *
+    * @param  User $user
+    * @return bool
+    */
+    public function create(User $user): bool
+    {
+        return $user->exists;
+    }
+
+    /**
+    * Determine whether the user can update the model.
+    *
+    * @param  User    $user
+    * @param  {{ model }} ${{ modelVariable }}
+    * @return bool
+    */
+    public function update(User $user, {{ model }} ${{ modelVariable }}): bool
+    {
+        return ${{ modelVariable }}->exists && $user->exists;
+    }
+
+    /**
+    * Determine whether the user can delete the model.
+    *
+    * @param  User    $user
+    * @param  {{ model }} ${{ modelVariable }}
+    * @return bool
+    */
+    public function delete(User $user, {{ model }} ${{ modelVariable }}): bool
+    {
+        return ${{ modelVariable }}->exists && $user->exists;
+    }
+
+    /**
+    * Determine whether the user can restore the model.
+    *
+    * @param  User    $user
+    * @param  {{ model }} ${{ modelVariable }}
+    * @return bool
+    */
+    public function restore(User $user, {{ model }} ${{ modelVariable }}): bool
+    {
+        return ${{ modelVariable }}->exists && $user->exists;
+    }
+
+    /**
+    * Determine whether the user can permanently delete the model.
+    *
+    * @param  User    $user
+    * @param  {{ model }} ${{ modelVariable }}
+    * @return bool
+    */
+    public function forceDelete(User $user, {{ model }} ${{ modelVariable }}): bool
+    {
+        return ${{ modelVariable }}->exists && $user->exists;
+    }
+}

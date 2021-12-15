@@ -2,6 +2,8 @@
 
 return [
 
+    'user_class' => 'App\\Models\\User',
+
     /*
     |--------------------------------------------------------------------------
     | Directories
@@ -11,8 +13,10 @@ return [
     |
     */
 
-    'repository_directory' => app_path('Repositories/'),
-    'model_directory' => app_path('Models/'),
+    'models_directory' => app_path('Models/'),
+    'contracts_directory' => app_path('Contracts/'),
+    'repositories_directory' => app_path('Repositories/'),
+    'policies_directory' => app_path('Policies/'),
 
     /*
     |--------------------------------------------------------------------------
@@ -22,8 +26,10 @@ return [
     | The namespace of repository and models
     |
     */
-    'model_namespace' => 'App\Models',
-    'repository_namespace' => 'App\Repositories',
+    'models_namespace' => 'App\Models',
+    'contracts_namespace' => 'App\Contracts',
+    'repositories_namespace' => 'App\Repositories',
+    'policies_namespace' => 'App\Policies',
 
     /*
     |--------------------------------------------------------------------------
@@ -40,8 +46,13 @@ return [
     */
 
     // Only file name of the file because full path can cause errors.
-    // We're gonna use "repository_directory" config value for it.
+    // We're going to use "repository_directory" config value for it.
     'base_repository_file' => 'BaseRepository.php',
     // Class name as string
     'base_repository_class' => \Lab2view\RepositoryGenerator\BaseRepository::class,
+
+    // We're going to use "contracts_directory" config value for it.
+    'base_contract_file' => 'RepositoryInterface.php',
+    // Interface name as string
+    'base_contract_interface' => \Lab2view\RepositoryGenerator\RepositoryInterface::class,
 ];

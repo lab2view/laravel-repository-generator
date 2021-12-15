@@ -1,0 +1,12 @@
+<?php
+namespace {{ contracts_namespace }};
+
+{{ use_statement_for_contract }}
+
+/**
+ * Interface {{ contract }}
+ * @package {{ contracts_namespace }}
+ */
+interface {{ contract }} extends {{ base_contract }}
+{
+}
