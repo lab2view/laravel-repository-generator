@@ -355,9 +355,7 @@ class Generate extends Command
         // Policy stub values those should be changed by command.
         $policyStubValues = [
             '{{ use_statement_for_user_model }}',
-            '{{ use_statement_for_policy }}',
             '{{ policies_namespace }}',
-            '{{ base_policy }}',
             '{{ policy }}',
             '{{ models_namespace }}',
             '{{ model }}',
@@ -370,12 +368,6 @@ class Generate extends Command
             // Current policy file name
             $policyFile = $this->policiesPath($policy . '.php');
 
-            // Check main policy file's path to add use
-            $useStatementForPolicy = false;
-            if (dirname($policyFile) !== dirname($this->directories['policies'])) {
-                $useStatementForPolicy = 'use ' . config('repository-generator.base_policy_class') . ';';
-            }
-
             // User Model
             $userClass = config('repository-generator.user_class');
             $useStatementForUserModel = false;
@@ -387,9 +379,7 @@ class Generate extends Command
             // Fillable policy values for generating real files
             $policyValues = [
                 $useStatementForUserModel ?: '',
-                $useStatementForPolicy ?: '',
                 $this->namespaces['policies'],
-                str_replace('.php', '', config('repository-generator.base_policy_file')),
                 $policy,
                 $this->namespaces['models'],
                 $model,

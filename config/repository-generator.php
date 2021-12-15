@@ -55,8 +55,4 @@ return [
     'base_contract_file' => 'RepositoryInterface.php',
     // Interface name as string
     'base_contract_interface' => \Lab2view\RepositoryGenerator\RepositoryInterface::class,
-
-    // Base class name as string
-    'base_policy_class' => \Lab2view\RepositoryGenerator\BasePolicy::class,
-    'base_policy_file' => 'BasePolicy.php',
 ];
