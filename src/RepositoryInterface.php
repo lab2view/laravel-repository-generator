@@ -60,7 +60,7 @@ interface RepositoryInterface
      * @param array $selects
      * @return mixed
      */
-    public function search($key, $value, array $relations, bool $withTrashed = false, array $selects = []);
+    public function search($key, $value, array $relations = [], bool $withTrashed = false, array $selects = []);
 
     /**
      * @param array $relations
@@ -68,7 +68,7 @@ interface RepositoryInterface
      * @param array $selects
      * @return mixed
      */
-    public function getAll(array $relations, bool $withTrashed = false, array $selects = []);
+    public function getAll(array $relations = [], bool $withTrashed = false, array $selects = []);
 
     /**
      * @param bool $withTrashed

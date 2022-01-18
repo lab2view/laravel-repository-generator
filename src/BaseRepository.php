@@ -119,7 +119,7 @@ abstract class BaseRepository implements RepositoryInterface
      * @param array $selects
      * @return mixed
      */
-    public function search($key, $value, array $relations, bool $withTrashed = false, array $selects = [])
+    public function search($key, $value, array $relations = [], bool $withTrashed = false, array $selects = [])
     {
         $query = $this->initiateQuery($relations, $withTrashed, $selects);
         return $query->where($key, 'like', '%' . $value . '%')
@@ -132,7 +132,7 @@ abstract class BaseRepository implements RepositoryInterface
      * @param array $selects
      * @return mixed
      */
-    public function getAll(array $relations, bool $withTrashed = false, array $selects = [])
+    public function getAll(array $relations = [], bool $withTrashed = false, array $selects = [])
     {
         $query = $this->initiateQuery($relations, $withTrashed, $selects);
         return $query->get();
