@@ -264,4 +264,13 @@ abstract class BaseRepository implements RepositoryInterface
 
         return $query;
     }
+
+    /**
+     * @param array $ids
+     * @return mixed
+     */
+    public function destroyByIds(array $ids)
+    {
+        return $this->model->newQuery()->whereIn('id', $ids)->delete();
+    }
 }

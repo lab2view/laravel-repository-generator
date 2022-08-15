@@ -111,4 +111,10 @@ interface RepositoryInterface
      * @return bool
      */
     public function restore($id): bool;
+
+    /**
+     * @param array $ids
+     * @return mixed
+     */
+    public function destroyByIds(array $ids);
 }
