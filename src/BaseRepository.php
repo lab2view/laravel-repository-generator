@@ -255,7 +255,7 @@ abstract class BaseRepository implements RepositoryInterface
         }
 
         if (count($selects) > 0) {
-            $query->select($selects);
+            $query = $query->select($selects);
         }
 
         if ($withTrashed) {
